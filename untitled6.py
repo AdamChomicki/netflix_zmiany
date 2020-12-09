@@ -172,8 +172,10 @@ tytuly = filmy_dane_join_dane_id['title']
 indeksy = pd.Series(filmy_dane_join_dane_id.index, index=filmy_dane_join_dane_id['title'])
 
 
+
 # UZYSKANA REKOMENDACJA
 uzyskane_rekomendacje('Batman Returns').head(5)
+
 
 
 # NIE WIEM, ALE WAŻNE
@@ -188,14 +190,16 @@ dane = Dataset.load_from_df(oceny[['userId', 'movieId', 'rating']], czytelnik)
 # METODA SVD
 svd = SVD()
 
-# kroswalidacja
+# KROSWALIDACJA
 cross_validate (svd, dane, measures=['RMSE', 'MAE'], cv=5, verbose=True) 
     
+# WCZYTANIE DANYCH
 mapa_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')[['movieId', 'tmdbId']] 
 mapa_id.columns = ['movieId', 'id']
 mapa_id = mapa_id.merge(filmy_dane_join_dane_id[['title', 'id']], on='id').set_index('title') 
 mapa_indeksow = mapa_id.set_index('id') 
 
+# REKOMENDACJA HYBRYDOWA
 def hybryda(userId, title): 
     idx = indeksy[title] 
     tmdbId = mapa_id.loc[title]['id']
@@ -215,5 +219,6 @@ def hybryda(userId, title):
 hybryda(1, 'Avatar') 
 hybryda(500, 'Avatar')
 
+# METODA .PREDICT NIE OCENIA NASZEJ REKOMENDACJI?
 oceny[oceny['userId'] == 1]
 svd.predict(1, 302, 3) 
