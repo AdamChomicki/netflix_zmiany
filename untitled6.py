@@ -132,14 +132,15 @@ kluczowe_slowa = filmy_dane_join_dane_id.apply(lambda x: pd.Series(x['keywords']
 # ZMIANA NAZWY KOLUMNY
 kluczowe_slowa.name = 'keyword'
 
-
+# WYSTĘPOWANIE SŁÓW KLUCZOWYCH
 kluczowe_slowa = kluczowe_slowa.value_counts()
 kluczowe_slowa = kluczowe_slowa[kluczowe_slowa > 1]
 
+# UŻYCIE STEMERA
 stemmer = SnowballStemmer('english')
-
 stemmer.stem('asked')
 
+# FUNKCJA BIORĄCA POD UWAGĘ SŁOWA KLUCZOWE PRZY REKOMENDACJI
 def filtr_slow_kluczowych(x): # 
     words = []
     for i in x:
@@ -147,44 +148,48 @@ def filtr_slow_kluczowych(x): #
             words.append(i)
     return words
 
+# NIE ROZUMIEM
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(filtr_slow_kluczowych)
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [stemmer.stem(i) for i in x])
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [str.lower(i.replace(" ", "")) for i in x])
 filmy_dane_join_dane_id['soup'] = filmy_dane_join_dane_id['keywords'] + filmy_dane_join_dane_id['cast'] + filmy_dane_join_dane_id['Director'] + filmy_dane_join_dane_id['genres']
 filmy_dane_join_dane_id['soup'] = filmy_dane_join_dane_id['soup'].apply(lambda x: ' '.join(x)) 
 
+# NIE ROZUMIEM
 zlicz = CountVectorizer(analyzer='word',ngram_range=(1, 2),min_df=0, stop_words='english') 
 zlicz_macierz = zlicz.fit_transform(filmy_dane_join_dane_id['soup'])
 
+# NIE ROZUMIEM
 podobienstwo_cosinusowe = cosine_similarity(zlicz_macierz, zlicz_macierz) 
 
+# BEZ TEGO, NIE PODAJE WŁASCIWYCH TYTUŁÓW
 filmy_dane_join_dane_id = filmy_dane_join_dane_id.reset_index()
 
+# NIE ROZUMIEM
 tytuly = filmy_dane_join_dane_id['title']
 
+# NIE ROZUMIEM
 indeksy = pd.Series(filmy_dane_join_dane_id.index, index=filmy_dane_join_dane_id['title'])
 
 
-
+# UZYSKANA REKOMENDACJA
 uzyskane_rekomendacje('Batman Returns').head(5)
 
 
-
+# NIE WIEM, ALE WAŻNE
 czytelnik = Reader()
 
+# WCZYTANIE ID UŻYTKOWNIKA, ID FILMU I OCENY
 oceny = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/ratings_small.csv') 
 
+# NIE WIEM, ALE WAŻNE
 dane = Dataset.load_from_df(oceny[['userId', 'movieId', 'rating']], czytelnik)
 
+# METODA SVD
 svd = SVD()
 
+# kroswalidacja
 cross_validate (svd, dane, measures=['RMSE', 'MAE'], cv=5, verbose=True) 
-
-trainset = dane.build_full_trainset()
-
-oceny[oceny['userId'] == 1]
-
-svd.predict(1, 302, 3) 
     
 mapa_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')[['movieId', 'tmdbId']] 
 mapa_id.columns = ['movieId', 'id']
@@ -209,3 +214,6 @@ def hybryda(userId, title):
 
 hybryda(1, 'Avatar') 
 hybryda(500, 'Avatar')
+
+oceny[oceny['userId'] == 1]
+svd.predict(1, 302, 3) 
