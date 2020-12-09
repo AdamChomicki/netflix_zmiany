@@ -41,12 +41,6 @@ plt.figure(figsize=(12,4))
 plt.barh(popularnosc['title'].head(5),popularnosc['popularity'].head(5), align='center', color='skyblue')
 
 
-
-gatunek_filmu = filmy_dane.apply(lambda x: pd.Series(x['genres']), axis=1).stack().reset_index(level=1,drop=True)  
-gatunek_filmu.name = 'kategoria'
-
-filmy_dane_kategoria = filmy_dane.drop('genres', axis=1).join(gatunek_filmu) 
-
 dane_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')  
 dane_id = dane_id[dane_id['tmdbId'].notnull()]['tmdbId'].astype('int')  
 
