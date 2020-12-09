@@ -82,8 +82,13 @@ def uzyskane_rekomendacje(tytul):
     indeksy_filmowe = [i[0] for i in wynik_symulacji]
     return tytuly.iloc[indeksy_filmowe]
 
+
+
 uzyskane_rekomendacje('Batman Returns').head(5)
 uzyskane_rekomendacje('Harry Potter and the Half-Blood Prince').head(5)
+
+
+
 
 # WCZYTANIE DANYCH
 obsada = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/credits.csv') 
@@ -101,15 +106,18 @@ filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(literal_
 filmy_dane_join_dane_id['crew'] = filmy_dane_join_dane_id['crew'].apply(literal_eval) 
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(literal_eval)
 
+# DODANIE DO 'FILMY_DANE_JOIN_ ... ' KOLUMN CAST I CREW SIZE
 filmy_dane_join_dane_id['cast_size'] = filmy_dane_join_dane_id['cast'] 
 filmy_dane_join_dane_id['crew_size'] = filmy_dane_join_dane_id['crew']
 
+# FUNKCJA BIORĄCA POD UWAGĘ REŻYSERA
 def otrzymanie_rezysera(x): 
     for i in x:
         if i['job'] == 'Director':
             return i['name']
     return np.nan
 
+# NIE ROZUMIEM TEGO BLOKU
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['crew'].apply(otrzymanie_rezysera)
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: x[:3] if len(x) >=3 else x) 
@@ -118,11 +126,15 @@ filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['Director'].astype('str').apply(lambda x: str.lower(x.replace(" ", ""))) 
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['Director'].apply(lambda x: [x,x, x]) 
 
-gatunek_filmu = filmy_dane_join_dane_id.apply(lambda x: pd.Series(x['keywords']),axis=1).stack().reset_index(level=1, drop=True)
-gatunek_filmu.name = 'keyword'
+# NIE ROZUMIEM TEGO BLOKU
+kluczowe_slowa = filmy_dane_join_dane_id.apply(lambda x: pd.Series(x['keywords']),axis=1).stack().reset_index(level=1, drop=True)
 
-gatunek_filmu = gatunek_filmu.value_counts()
-gatunek_filmu = gatunek_filmu[gatunek_filmu > 1]
+# ZMIANA NAZWY KOLUMNY
+kluczowe_slowa.name = 'keyword'
+
+
+kluczowe_slowa = kluczowe_slowa.value_counts()
+kluczowe_slowa = kluczowe_slowa[kluczowe_slowa > 1]
 
 stemmer = SnowballStemmer('english')
 
@@ -131,7 +143,7 @@ stemmer.stem('asked')
 def filtr_slow_kluczowych(x): # 
     words = []
     for i in x:
-        if i in gatunek_filmu:
+        if i in kluczowe_slowa:
             words.append(i)
     return words
 
@@ -139,7 +151,7 @@ filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [stemmer.stem(i) for i in x])
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [str.lower(i.replace(" ", "")) for i in x])
 filmy_dane_join_dane_id['soup'] = filmy_dane_join_dane_id['keywords'] + filmy_dane_join_dane_id['cast'] + filmy_dane_join_dane_id['Director'] + filmy_dane_join_dane_id['genres']
-filmy_dane_join_dane_id['soup'] = filmy_dane_join_dane_id['soup'].apply(lambda x: ' '.join(x)) #
+filmy_dane_join_dane_id['soup'] = filmy_dane_join_dane_id['soup'].apply(lambda x: ' '.join(x)) 
 
 zlicz = CountVectorizer(analyzer='word',ngram_range=(1, 2),min_df=0, stop_words='english') 
 zlicz_macierz = zlicz.fit_transform(filmy_dane_join_dane_id['soup'])
