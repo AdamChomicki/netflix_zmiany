@@ -10,7 +10,6 @@ from surprise import Dataset
 from surprise.model_selection import cross_validate
 from sklearn.ensemble import IsolationForest
 from sklearn.model_selection import train_test_split
-
 import warnings; warnings.simplefilter('ignore') 
 
 filmy_dane = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/filmy_dane.csv')  
@@ -22,7 +21,7 @@ srednia_glosow = filmy_dane[filmy_dane['vote_average'].notnull()]['vote_average'
 srednia_ze_sredniej_liczby_glosow = srednia_glosow.mean()
 liczba_glosow_kwantyl = liczba_glosow.quantile(0.95) 
 
-filmy_dane['year'] = pd.to_datetime(filmy_dane['release_date'], errors='coerce').apply(lambda x: str(x).split('-')[0] if x != np.nan else np.nan)
+filmy_dane['year'] = pd.to_datetime(filmy_dane['release_date'], errors='coerce')
 
 zakwalifikowany = filmy_dane[(filmy_dane['vote_count'] >= liczba_glosow_kwantyl) & (filmy_dane['vote_count'].notnull()) & (filmy_dane['vote_average'].notnull())][['title', 'year', 'vote_count', 'vote_average', 'popularity', 'genres']]
 zakwalifikowany['vote_count'] = zakwalifikowany['vote_count'].astype('int')  
@@ -85,8 +84,12 @@ def uzyskane_rekomendacje(tytul):
     indeksy_filmowe = [i[0] for i in wynik_symulacji]
     return tytuly.iloc[indeksy_filmowe]
 
+
+
 uzyskane_rekomendacje('Batman Returns').head(5)
 uzyskane_rekomendacje('Harry Potter and the Half-Blood Prince').head(5)
+
+
 
 obsada = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/credits.csv') 
 slowa_kluczowe = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/keywords.csv') 
@@ -150,7 +153,11 @@ tytuly = filmy_dane_join_dane_id['title']
 
 indeksy = pd.Series(filmy_dane_join_dane_id.index, index=filmy_dane_join_dane_id['title'])
 
+
+
 uzyskane_rekomendacje('Batman Returns').head(5)
+
+
 
 czytelnik = Reader()
 
