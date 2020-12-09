@@ -40,35 +40,40 @@ import matplotlib.pyplot as plt
 plt.figure(figsize=(12,4))
 plt.barh(popularnosc['title'].head(5),popularnosc['popularity'].head(5), align='center', color='skyblue')
 
-
+# WCZYTANIE NOWYCH DANYCH
 dane_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')  
 dane_id = dane_id[dane_id['tmdbId'].notnull()]['tmdbId'].astype('int')  
 
+# USUNIĘCIE BŁĘDNYCH DANYCH
 filmy_dane = filmy_dane.dropna(subset=['release_date'])
 filmy_dane = filmy_dane[filmy_dane['release_date'].str.contains("^[0-9]{4}-[0-9]{2}-[0-9]{2}")]
 
+# OCZYSZCZENIE DANYCH
 filmy_dane['id'] = filmy_dane['id'].astype('int')  
-
 filmy_dane_join_dane_id = filmy_dane[filmy_dane['id'].isin(dane_id)]  
-
 filmy_dane_join_dane_id['tagline'] = filmy_dane_join_dane_id['tagline'].fillna('')
 filmy_dane_join_dane_id['description'] = filmy_dane_join_dane_id['overview'] + filmy_dane_join_dane_id['tagline']  
 filmy_dane_join_dane_id['description'] = filmy_dane_join_dane_id['description'].fillna('')  
 
+# UŻYCIE WEKTORYZATORA
 wektoryzator_tfId = TfidfVectorizer(analyzer='word', ngram_range=(1, 2), min_df=0,stop_words='english')  
-
 tfidf_macierz = wektoryzator_tfId.fit_transform(filmy_dane_join_dane_id['description'])  
 tfidf_macierz.shape
 
+# UŻYCIE PODOBIEŃSTWA COSINUSOWEGO
 podobienstwo_cosinusowe = linear_kernel(tfidf_macierz,tfidf_macierz)  
 podobienstwo_cosinusowe[0]
 
+# BEZ KOLUMNY INDEX NIE DOPASOWUJE FILMÓW PODOBNYCH
 filmy_dane_join_dane_id = filmy_dane_join_dane_id.reset_index()
 
+# PRZYPISANIE TYTUŁÓW DO ZMIENNEJ 'TYTULY'
 tytuly = filmy_dane_join_dane_id['title']
 
+# PRZYPISANIE INDEKSÓW DO TYTŁÓW
 indeksy = pd.Series(filmy_dane_join_dane_id.index, index=filmy_dane_join_dane_id['title'])  
 
+# PO CZYM TE ROKOMENDACJE?
 def uzyskane_rekomendacje(tytul):
     indeks = indeksy[tytul]
     wynik_symulacji = list(enumerate(podobienstwo_cosinusowe[indeks]))
@@ -77,26 +82,27 @@ def uzyskane_rekomendacje(tytul):
     indeksy_filmowe = [i[0] for i in wynik_symulacji]
     return tytuly.iloc[indeksy_filmowe]
 
-
-
 uzyskane_rekomendacje('Batman Returns').head(5)
 uzyskane_rekomendacje('Harry Potter and the Half-Blood Prince').head(5)
 
-
-
+# WCZYTANIE DANYCH
 obsada = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/credits.csv') 
 slowa_kluczowe = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/keywords.csv') 
 
+# DODANIE OBSADY I SŁÓW KLUCZOWYCH DO FILMOW
 filmy_dane = filmy_dane.merge(obsada, on='id') 
 filmy_dane = filmy_dane.merge(slowa_kluczowe, on='id') 
 
+# DODANIE 'ID' DO TABELI
 filmy_dane_join_dane_id = filmy_dane[filmy_dane['id'].isin(dane_id)] 
+
+# ZMIANA NA LICZBY CAŁKOWITE?
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(literal_eval) 
 filmy_dane_join_dane_id['crew'] = filmy_dane_join_dane_id['crew'].apply(literal_eval) 
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(literal_eval)
 
-filmy_dane_join_dane_id['cast_size'] = filmy_dane_join_dane_id['cast'].apply(lambda x: len(x)) 
-filmy_dane_join_dane_id['crew_size'] = filmy_dane_join_dane_id['crew'].apply(lambda x: len(x))
+filmy_dane_join_dane_id['cast_size'] = filmy_dane_join_dane_id['cast'] 
+filmy_dane_join_dane_id['crew_size'] = filmy_dane_join_dane_id['crew']
 
 def otrzymanie_rezysera(x): 
     for i in x:
