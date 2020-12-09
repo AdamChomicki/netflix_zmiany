@@ -41,22 +41,6 @@ gatunek_filmu.name = 'kategoria'
 
 filmy_dane_kategoria = filmy_dane.drop('genres', axis=1).join(gatunek_filmu) 
 
-def buduj_wykres(kategoria, percentile=0.867):
-    df = filmy_dane_kategoria[filmy_dane_kategoria['belongs_to_collection'] == kategoria]
-    liczba_glosow = df[df['vote_count'].notnull()]['vote_count'].astype('int')
-    srednia_glosow = df[df['vote_average'].notnull()]['vote_average'].astype('int')
-    srednia_ze_sredniej_liczby_glosow = srednia_glosow.mean()
-    liczba_glosow_kwantyl = liczba_glosow.quantile(percentile)
-
-    zakwalifikowany = df[(df['vote_count'] >= liczba_glosow_kwantyl) & (df['vote_count'].notnull()) & (df['vote_average'].notnull())][['title', 'year', 'vote_count', 'vote_average', 'popularity']]
-    zakwalifikowany['vote_count'] = zakwalifikowany['vote_count'].astype('int')
-    zakwalifikowany['vote_average'] = zakwalifikowany['vote_average'].astype('int')
-
-    zakwalifikowany['ocena_wazona'] = zakwalifikowany.apply(lambda x: (x['vote_count'] / (x['vote_count'] + liczba_glosow_kwantyl) * x['vote_average']) + (liczba_glosow_kwantyl / (liczba_glosow_kwantyl + x['vote_count']) * srednia_ze_sredniej_liczby_glosow), axis=1)
-    zakwalifikowany = zakwalifikowany.sort_values('ocena_wazona', ascending=False).head(500)
-
-    return zakwalifikowany
-
 dane_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')  
 dane_id = dane_id[dane_id['tmdbId'].notnull()]['tmdbId'].astype('int')  
 
