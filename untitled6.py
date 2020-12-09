@@ -20,7 +20,7 @@ filmy_dane['genres'] = filmy_dane['genres'].fillna('[]').apply(literal_eval).app
 liczba_glosow = filmy_dane[filmy_dane['vote_count'].notnull()]['vote_count'].astype('int') 
 srednia_glosow = filmy_dane[filmy_dane['vote_average'].notnull()]['vote_average'].astype('int')
 srednia_ze_sredniej_liczby_glosow = srednia_glosow.mean()
-liczba_glosow_kwantyl = liczba_glosow.quantile(0.867) 
+liczba_glosow_kwantyl = liczba_glosow.quantile(0.95) 
 
 filmy_dane['year'] = pd.to_datetime(filmy_dane['release_date'], errors='coerce').apply(lambda x: str(x).split('-')[0] if x != np.nan else np.nan)
 
@@ -33,8 +33,16 @@ def ocena_wazona(x):
     s_srednia_glosow = x['vote_average']
     return (l_liczba_glosow / (l_liczba_glosow + liczba_glosow_kwantyl) * s_srednia_glosow) + (liczba_glosow_kwantyl / (liczba_glosow_kwantyl + l_liczba_glosow) * srednia_ze_sredniej_liczby_glosow)
 
-zakwalifikowany['ocena_wazona'] = zakwalifikowany.apply(ocena_wazona,axis=1)  
-zakwalifikowany = zakwalifikowany.sort_values('ocena_wazona', ascending=False).head(500)  
+zakwalifikowany.popularity = zakwalifikowany.popularity.astype('float32')
+
+zakwalifikowany['ocena_wazona'] = zakwalifikowany.apply(ocena_wazona, axis=1)
+zakwalifikowany = zakwalifikowany.sort_values('ocena_wazona', ascending=False).head(500)
+zakwalifikowany[['title', 'vote_count', 'vote_average', 'ocena_wazona']].head(10)
+
+popularnosc = zakwalifikowany.sort_values('popularity', ascending=False)
+import matplotlib.pyplot as plt
+plt.figure(figsize=(12,4))
+plt.barh(popularnosc['title'].head(5),popularnosc['popularity'].head(5), align='center', color='skyblue')
 
 gatunek_filmu = filmy_dane.apply(lambda x: pd.Series(x['genres']), axis=1).stack().reset_index(level=1,drop=True)  
 gatunek_filmu.name = 'kategoria'
