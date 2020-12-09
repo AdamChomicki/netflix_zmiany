@@ -1,3 +1,4 @@
+# WCZYTANIE BIBLIOTEK
 import pandas as pd 
 import numpy as np 
 from ast import literal_eval
@@ -12,36 +13,34 @@ from sklearn.ensemble import IsolationForest
 from sklearn.model_selection import train_test_split
 import warnings; warnings.simplefilter('ignore') 
 
+# WCZYTANIE DANYCH
 filmy_dane = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/filmy_dane.csv')  
 
+# NIE WIEM, ALE MUSI ZOSTAĆ
 filmy_dane['genres'] = filmy_dane['genres'].fillna('[]').apply(literal_eval).apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])  
 
+# PRZYPISANIE L. GŁOSÓW, USTAWIENIE WARTOSCI ODCIECIA
 liczba_glosow = filmy_dane[filmy_dane['vote_count'].notnull()]['vote_count'].astype('int') 
 srednia_glosow = filmy_dane[filmy_dane['vote_average'].notnull()]['vote_average'].astype('int')
 srednia_ze_sredniej_liczby_glosow = srednia_glosow.mean()
 liczba_glosow_kwantyl = liczba_glosow.quantile(0.95) 
 
+# WYCIĄGNIĘCIE ROKU DO OSOBNEJ KOLUMNY
 filmy_dane['year'] = pd.to_datetime(filmy_dane['release_date'], errors='coerce')
 
+# PRZYPISANIE FILMÓW BRANYCH POD UWAGE W REKOMENDACJACH
 zakwalifikowany = filmy_dane[(filmy_dane['vote_count'] >= liczba_glosow_kwantyl) & (filmy_dane['vote_count'].notnull()) & (filmy_dane['vote_average'].notnull())][['title', 'year', 'vote_count', 'vote_average', 'popularity', 'genres']]
 zakwalifikowany['vote_count'] = zakwalifikowany['vote_count'].astype('int')  
 zakwalifikowany['vote_average'] = zakwalifikowany['vote_average'].astype('int')  
 
-def ocena_wazona(x):
-    l_liczba_glosow = x['vote_count']
-    s_srednia_glosow = x['vote_average']
-    return (l_liczba_glosow / (l_liczba_glosow + liczba_glosow_kwantyl) * s_srednia_glosow) + (liczba_glosow_kwantyl / (liczba_glosow_kwantyl + l_liczba_glosow) * srednia_ze_sredniej_liczby_glosow)
-
+# TWORZENIE WYKRESU
 zakwalifikowany.popularity = zakwalifikowany.popularity.astype('float32')
-
-zakwalifikowany['ocena_wazona'] = zakwalifikowany.apply(ocena_wazona, axis=1)
-zakwalifikowany = zakwalifikowany.sort_values('ocena_wazona', ascending=False).head(500)
-zakwalifikowany[['title', 'vote_count', 'vote_average', 'ocena_wazona']].head(10)
-
 popularnosc = zakwalifikowany.sort_values('popularity', ascending=False)
 import matplotlib.pyplot as plt
 plt.figure(figsize=(12,4))
 plt.barh(popularnosc['title'].head(5),popularnosc['popularity'].head(5), align='center', color='skyblue')
+
+
 
 gatunek_filmu = filmy_dane.apply(lambda x: pd.Series(x['genres']), axis=1).stack().reset_index(level=1,drop=True)  
 gatunek_filmu.name = 'kategoria'
