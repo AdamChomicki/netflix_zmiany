@@ -41,18 +41,6 @@ import matplotlib.pyplot as plt
 plt.figure(figsize=(12,4))
 plt.barh(popularnosc['title'].head(5),popularnosc['popularity'].head(5), align='center', color='skyblue')
 
-########
-plt.figure(figsize=(20,15))
-sns.set(font_scale=2)
-sns.countplot(x='vote_count',hue='vote_count',data=zakwalifikowany)
-sns.set(style="darkgrid")
-plt.xlabel('source types',fontsize=30)
-plt.ylabel('count',fontsize=30)
-plt.xticks(rotation='45')
-plt.title('Count plot source types for listening music',fontsize=30)
-plt.tight_layout()
-########
-
 # WCZYTANIE NOWYCH DANYCH
 dane_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')  
 dane_id = dane_id[dane_id['tmdbId'].notnull()]['tmdbId'].astype('int')  
@@ -204,7 +192,7 @@ dane = Dataset.load_from_df(oceny[['userId', 'movieId', 'rating']], czytelnik)
 svd = SVD()
 
 # KROSWALIDACJA
-cross_validate (svd, dane, measures=['RMSE', 'MAE'], cv=5, verbose=True) 
+cross_validate (svd, dane, measures=['RMSE', 'MAE']) 
     
 # WCZYTANIE DANYCH
 mapa_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')[['movieId', 'tmdbId']] 
