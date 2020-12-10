@@ -2,15 +2,16 @@
 import pandas as pd 
 import numpy as np 
 from ast import literal_eval
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer 
+from sklearn.feature_extraction.text import CountVectorizer 
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 from nltk.stem.snowball import SnowballStemmer 
 from surprise import Reader
 from surprise import SVD 
 from surprise import Dataset
 from surprise.model_selection import cross_validate
-from sklearn.ensemble import IsolationForest
-from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import seaborn as sns 
+
 import warnings; warnings.simplefilter('ignore') 
 
 # WCZYTANIE DANYCH
@@ -33,12 +34,24 @@ zakwalifikowany = filmy_dane[(filmy_dane['vote_count'] >= liczba_glosow_kwantyl)
 zakwalifikowany['vote_count'] = zakwalifikowany['vote_count'].astype('int')  
 zakwalifikowany['vote_average'] = zakwalifikowany['vote_average'].astype('int')  
 
-# TWORZENIE WYKRESU
+# TWORZENIE WYKRESU DOTYCZĄCEGO POPULARNO
 zakwalifikowany.popularity = zakwalifikowany.popularity.astype('float32')
 popularnosc = zakwalifikowany.sort_values('popularity', ascending=False)
 import matplotlib.pyplot as plt
 plt.figure(figsize=(12,4))
 plt.barh(popularnosc['title'].head(5),popularnosc['popularity'].head(5), align='center', color='skyblue')
+
+########
+plt.figure(figsize=(20,15))
+sns.set(font_scale=2)
+sns.countplot(x='vote_count',hue='vote_count',data=zakwalifikowany)
+sns.set(style="darkgrid")
+plt.xlabel('source types',fontsize=30)
+plt.ylabel('count',fontsize=30)
+plt.xticks(rotation='45')
+plt.title('Count plot source types for listening music',fontsize=30)
+plt.tight_layout()
+########
 
 # WCZYTANIE NOWYCH DANYCH
 dane_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')  
@@ -56,8 +69,8 @@ filmy_dane_join_dane_id['description'] = filmy_dane_join_dane_id['overview'] + f
 filmy_dane_join_dane_id['description'] = filmy_dane_join_dane_id['description'].fillna('')  
 
 # UŻYCIE WEKTORYZATORA
-wektoryzator_tfId = TfidfVectorizer(analyzer='word', ngram_range=(1, 2), min_df=0,stop_words='english')  
-tfidf_macierz = wektoryzator_tfId.fit_transform(filmy_dane_join_dane_id['description'])  
+wektoryzator_count = CountVectorizer(analyzer='word', ngram_range=(1, 2), min_df=0,stop_words='english')  
+tfidf_macierz = wektoryzator_count.fit_transform(filmy_dane_join_dane_id['description'])  
 tfidf_macierz.shape
 
 # UŻYCIE PODOBIEŃSTWA COSINUSOWEGO
