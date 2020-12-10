@@ -10,7 +10,6 @@ from surprise import SVD
 from surprise import Dataset
 from surprise.model_selection import cross_validate
 import matplotlib.pyplot as plt
-import seaborn as sns 
 
 import warnings; warnings.simplefilter('ignore') 
 
@@ -37,7 +36,6 @@ zakwalifikowany['vote_average'] = zakwalifikowany['vote_average'].astype('int')
 # TWORZENIE WYKRESU DOTYCZĄCEGO POPULARNO
 zakwalifikowany.popularity = zakwalifikowany.popularity.astype('float32')
 popularnosc = zakwalifikowany.sort_values('popularity', ascending=False)
-import matplotlib.pyplot as plt
 plt.figure(figsize=(12,4))
 plt.barh(popularnosc['title'].head(5),popularnosc['popularity'].head(5), align='center', color='skyblue')
 
@@ -111,7 +109,7 @@ filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(
 filmy_dane_join_dane_id['cast_size'] = filmy_dane_join_dane_id['cast'] 
 filmy_dane_join_dane_id['crew_size'] = filmy_dane_join_dane_id['crew']
 
-# FUNKCJA BIORĄCA POD UWAGĘ REŻYSERA
+# FUNKCJA UZYSKUJĄCA NAZWISKO REŻYSERA, JESLI NIE MA NA LISCIE ZWROĆ NAN.
 def otrzymanie_rezysera(x): 
     for i in x:
         if i['job'] == 'Director':
@@ -123,7 +121,9 @@ filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['crew'].apply(otrz
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: x[:3] if len(x) >=3 else x) 
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
+
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: [str.lower(i.replace(" ", "")) for i in x]) 
+
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['Director'].astype('str').apply(lambda x: str.lower(x.replace(" ", ""))) 
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['Director'].apply(lambda x: [x,x, x]) 
 
@@ -203,9 +203,7 @@ mapa_indeksow = mapa_id.set_index('id')
 # REKOMENDACJA HYBRYDOWA
 def hybryda(userId, title): 
     idx = indeksy[title] 
-    tmdbId = mapa_id.loc[title]['id']
     print(idx)
-    movie_id = mapa_id.loc[title]['movieId']
     
     wynik_cosunisowy = list(enumerate(podobienstwo_cosinusowe[int(idx)])) 
     wynik_cosunisowy = sorted(wynik_cosunisowy, key=lambda x: x[1], reverse=True)  
