@@ -57,12 +57,12 @@ filmy_dane_join_dane_id['description'] = filmy_dane_join_dane_id['overview'] + f
 filmy_dane_join_dane_id['description'] = filmy_dane_join_dane_id['description'].fillna('')  
 
 # UŻYCIE WEKTORYZATORA
-wektoryzator_count = CountVectorizer(analyzer='word', ngram_range=(1, 2), min_df=0,stop_words='english')  
-tfidf_macierz = wektoryzator_count.fit_transform(filmy_dane_join_dane_id['description'])  
-tfidf_macierz.shape
+wektoryzator_count = CountVectorizer(stop_words='english')
+count_macierz = wektoryzator_count.fit_transform(filmy_dane_join_dane_id['description'])
+count_macierz.shape
 
 # UŻYCIE PODOBIEŃSTWA COSINUSOWEGO
-podobienstwo_cosinusowe = linear_kernel(tfidf_macierz,tfidf_macierz)  
+podobienstwo_cosinusowe = linear_kernel(count_macierz,count_macierz)  
 podobienstwo_cosinusowe[0]
 
 # BEZ KOLUMNY INDEX NIE DOPASOWUJE FILMÓW PODOBNYCH
