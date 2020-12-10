@@ -1,6 +1,8 @@
 # WCZYTANIE BIBLIOTEK
 import pandas as pd 
 import numpy as np 
+import seaborn as sns
+import matplotlib.pyplot as plt
 from ast import literal_eval
 from sklearn.feature_extraction.text import CountVectorizer 
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
@@ -9,12 +11,20 @@ from surprise import Reader
 from surprise import SVD 
 from surprise import Dataset
 from surprise.model_selection import cross_validate
-import matplotlib.pyplot as plt
 
 import warnings; warnings.simplefilter('ignore') 
 
 # WCZYTANIE DANYCH
 filmy_dane = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/filmy_dane.csv')  
+
+# USUNIĘCIE BŁĘDNYCH DANYCH
+filmy_dane = filmy_dane.dropna(subset=['release_date'])
+filmy_dane = filmy_dane[filmy_dane['release_date'].str.contains("^[0-9]{4}-[0-9]{2}-[0-9]{2}")]
+
+# WYKRES DOTYCZĄCY JĘZYKA
+plt.figure(figsize=(12,10))
+sns.set(style="darkgrid")
+wykres_jezyk = sns.countplot(x="original_language", data=filmy_dane, palette="Set2", order=filmy_dane['original_language'].value_counts().index[0:15])
 
 # NIE WIEM, ALE MUSI ZOSTAĆ
 filmy_dane['genres'] = filmy_dane['genres'].fillna('[]').apply(literal_eval).apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])  
@@ -42,10 +52,6 @@ plt.barh(popularnosc['title'].head(5),popularnosc['popularity'].head(5), align='
 # WCZYTANIE NOWYCH DANYCH
 dane_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')  
 dane_id = dane_id[dane_id['tmdbId'].notnull()]['tmdbId'].astype('int')  
-
-# USUNIĘCIE BŁĘDNYCH DANYCH
-filmy_dane = filmy_dane.dropna(subset=['release_date'])
-filmy_dane = filmy_dane[filmy_dane['release_date'].str.contains("^[0-9]{4}-[0-9]{2}-[0-9]{2}")]
 
 # OCZYSZCZENIE DANYCH
 filmy_dane['id'] = filmy_dane['id'].astype('int')  
@@ -180,16 +186,18 @@ uzyskane_rekomendacje('Batman Returns').head(5)
 
 
 # NIE WIEM, ALE WAŻNE
-czytelnik = Reader()
+reader = Reader()
 
 # WCZYTANIE ID UŻYTKOWNIKA, ID FILMU I OCENY
 oceny = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/ratings_small.csv') 
 
 # NIE WIEM, ALE WAŻNE
-dane = Dataset.load_from_df(oceny[['userId', 'movieId', 'rating']], czytelnik)
+dane = Dataset.load_from_df(oceny[['userId', 'movieId', 'rating']], reader)
 
 # METODA SVD
 svd = SVD()
+#trainset = dane.build_full_trainset()
+#svd.fit(trainset)
 
 # KROSWALIDACJA
 cross_validate (svd, dane, measures=['RMSE', 'MAE']) 
@@ -221,3 +229,5 @@ hybryda(500, 'Avatar')
 # METODA .PREDICT NIE OCENIA NASZEJ REKOMENDACJI?
 oceny[oceny['userId'] == 1]
 svd.predict(1, 302, 3) 
+
+
