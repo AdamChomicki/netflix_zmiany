@@ -153,12 +153,12 @@ def filtr_slow_kluczowych(x): #
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(filtr_slow_kluczowych)
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [stemmer.stem(i) for i in x])
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [str.lower(i.replace(" ", "")) for i in x])
-filmy_dane_join_dane_id['soup'] = filmy_dane_join_dane_id['keywords'] + filmy_dane_join_dane_id['cast'] + filmy_dane_join_dane_id['Director'] + filmy_dane_join_dane_id['genres']
-filmy_dane_join_dane_id['soup'] = filmy_dane_join_dane_id['soup'].apply(lambda x: ' '.join(x)) 
+filmy_dane_join_dane_id['metadane_soup'] = filmy_dane_join_dane_id['keywords'] + filmy_dane_join_dane_id['cast'] + filmy_dane_join_dane_id['Director'] + filmy_dane_join_dane_id['genres']
+filmy_dane_join_dane_id['metadane_soup'] = filmy_dane_join_dane_id['metadane_soup'].apply(lambda x: ' '.join(x)) 
 
 # NIE ROZUMIEM
 zlicz = CountVectorizer(analyzer='word',ngram_range=(1, 2),min_df=0, stop_words='english') 
-zlicz_macierz = zlicz.fit_transform(filmy_dane_join_dane_id['soup'])
+zlicz_macierz = zlicz.fit_transform(filmy_dane_join_dane_id['metadane_soup'])
 
 # NIE ROZUMIEM
 podobienstwo_cosinusowe = cosine_similarity(zlicz_macierz, zlicz_macierz) 
