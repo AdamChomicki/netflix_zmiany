@@ -26,7 +26,7 @@ plt.figure(figsize=(12,10))
 sns.set(style="darkgrid")
 wykres_jezyk = sns.countplot(x="original_language", data=filmy_dane, palette="Set2", order=filmy_dane['original_language'].value_counts().index[0:15])
 
-# ZASTĘPUJEMY WARTOSCI NAN W KOLUMNIE 'GENRES' PUSTYM POLEM I COS NASTĘPNIE ZWRACAMY?
+# ZASTĘPUJEMY WARTOSCI NAN W KOLUMNIE 'GENRES' PUSTYM POLEM I CO NASTĘPNIE?
 filmy_dane['genres'] = filmy_dane['genres'].fillna('[]').apply(literal_eval).apply(lambda x: [i['name'] for i in x])  
 
 # PRZYPISANIE L. GŁOSÓW, USTAWIENIE WARTOSCI ODCIECIA TZN. FILMÓW KTÓRE NIE BĘDĄ BRANE POD UWAGE
@@ -235,9 +235,4 @@ hybryda(500, 'Avatar')
 
 # METODA .PREDICT NIE OCENIA NASZEJ REKOMENDACJI?
 oceny[oceny['userId'] == 1]
-svd.predict(1, 302, 3) 
-
-
-# bierze pod uwagę idUsera i tytuł filmu,
-# przypisuje indesy do tytułów, do zmiennej wynik_cosinusowy przypisuje listę
-# podobieństwa cosinusowego + id'ków, 
+svd.predict(1, 500) 
