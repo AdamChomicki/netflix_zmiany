@@ -26,7 +26,7 @@ plt.figure(figsize=(12,10))
 sns.set(style="darkgrid")
 wykres_jezyk = sns.countplot(x="original_language", data=filmy_dane, palette="Set2", order=filmy_dane['original_language'].value_counts().index[0:15])
 
-# NIE WIEM, ALE MUSI ZOSTAĆ
+# ZASTĘPUJEMY WARTOSCI NAN W KOLUMNIE 'GENRES' PUSTYM POLEM I COS NASTĘPNIE ZWRACAMY?
 filmy_dane['genres'] = filmy_dane['genres'].fillna('[]').apply(literal_eval).apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])  
 
 # PRZYPISANIE L. GŁOSÓW, USTAWIENIE WARTOSCI ODCIECIA TZN. FILMÓW KTÓRE NIE BĘDĄ BRANE POD UWAGE
@@ -65,7 +65,7 @@ wektoryzator_count = CountVectorizer(stop_words='english')
 count_macierz = wektoryzator_count.fit_transform(filmy_dane_join_dane_id['description'])
 count_macierz.shape
 
-# UŻYCIE PODOBIEŃSTWA COSINUSOWEGO
+# UŻYCIE PODOBIEŃSTWA COSINUSOWEGO. ALE CO PORÓWNUJEMY? DESCRIPION? DLACZEGO  ARGUMENTY COUNT_MACIERZ?
 podobienstwo_cosinusowe = linear_kernel(count_macierz,count_macierz)  
 podobienstwo_cosinusowe[0]
 
@@ -87,25 +87,21 @@ def uzyskane_rekomendacje(tytul):
     indeksy_filmowe = [i[0] for i in wynik_symulacji]
     return tytuly.iloc[indeksy_filmowe]
 
-
-
 uzyskane_rekomendacje('Batman Returns').head(5)
 uzyskane_rekomendacje('Harry Potter and the Half-Blood Prince').head(5)
-
-
 
 # WCZYTANIE DANYCH Z OBSADĄ FILMU I SŁOWAMI KLUCZOWYMI
 obsada = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/credits.csv') 
 slowa_kluczowe = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/keywords.csv') 
 
-# DODANIE OBSADY I SŁÓW KLUCZOWYCH DO FILMOW
+# DODANIE OBSADY I SŁÓW KLUCZOWYCH DO FILMÓW
 filmy_dane = filmy_dane.merge(obsada, on='id') 
 filmy_dane = filmy_dane.merge(slowa_kluczowe, on='id') 
 
 # DODANIE 'ID' DO TABELI
 filmy_dane_join_dane_id = filmy_dane[filmy_dane['id'].isin(dane_id)] 
 
-# PRZYGOTOWANIE DANYCH
+# PRZYGOTOWANIE DANYCH POD KĄTEM WŁASCIWEJ STRUKTURY DANYCH?
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(literal_eval) 
 filmy_dane_join_dane_id['crew'] = filmy_dane_join_dane_id['crew'].apply(literal_eval) 
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(literal_eval)
@@ -124,16 +120,16 @@ def otrzymanie_rezysera(x):
 # DODANIE KOLUMNY REŻYSER DO 'FILMY_DANE_JOIN_DANE_ID'
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['crew'].apply(otrzymanie_rezysera)
 
-# SPRAWDZENIE WŁACIWEGO TYPU DANYCH I USUWANIE SPACJI ???
-filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
+# ZWRACA JAKĄS LISTE ELEMENTÓW KTÓRA JEST RÓWNA BĄDŹ DŁUŻSZA OD 3?
+filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: [i['name'] for i in x]) 
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: x[:3] if len(x) >=3 else x) 
-filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
+filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [i['name'] for i in x]) 
 
-# PRZEKONWERTOWANIE NA MAŁE LITERY I USINIĘCIE SPACJI - po co?
+# PRZEKONWERTOWANIE NA MAŁE LITERY I USINIĘCIE SPACJI - PO CO?
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: [str.lower(i.replace(" ", "")) for i in x]) 
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['Director'].astype('str').apply(lambda x: str.lower(x.replace(" ", ""))) 
 
-# WZIECIE REŻYERA W CUDZYSŁÓW
+# WZIECIE REŻYERA W APOSTROFY - ALE PO CO? PRZECIEŻ TO CAŁY CZAS TEN SAM TYP DANYCH.
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['Director'].apply(lambda x: [x,x, x]) 
 
 # PRZYPISANIE DO TABELI 'SLOWA_KLUCZOWE' WYŁĄCZNIE SŁÓW KLUCZOWYCH.
@@ -161,13 +157,13 @@ def filtr_slow_kluczowych(x):
 # POZBYCIE SIĘ NIEPOTRZEBNYCH ELEMENTÓW Z KOLUMNY 'KEWYWORD' JAK ID, NAWIASY, ETC.
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(filtr_slow_kluczowych)
 
-# UŻYCIE STEMMERA CZYLI ZMIANA NP. DETECTIVE NA DETECT
+# UŻYCIE STEMMERA NA KOLUMNIE
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [stemmer.stem(i) for i in x])
 
 # PO CO ŁĄCZYMY TE WYRAZY ZE SOBĄ?
 filmy_dane_join_dane_id['metadane_soup'] = filmy_dane_join_dane_id['keywords'] + filmy_dane_join_dane_id['cast'] + filmy_dane_join_dane_id['Director'] + filmy_dane_join_dane_id['genres']
 
-# WZIĘCIE WYRAZÓW W APOSTROFY TYLKO PO CO?
+# WZIĘCIE WYRAZÓW W APOSTROFY TYLKO PO CO SKORO TO TE SAME TYPY?
 filmy_dane_join_dane_id['metadane_soup'] = filmy_dane_join_dane_id['metadane_soup'].apply(lambda x: ' '.join(x)) 
 
 # NIE ROZUMIEM TEJ LINII
@@ -247,4 +243,5 @@ svd.predict(1, 302, 3)
 
 
 # bierze pod uwagę idUsera i tytuł filmu,
-# przypisuje indesy do tytułów
+# przypisuje indesy do tytułów, do zmiennej wynik_cosinusowy przypisuje listę
+# podobieństwa cosinusowego + id'ków, 
