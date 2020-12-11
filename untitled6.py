@@ -164,23 +164,26 @@ filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(
 # UŻYCIE STEMMERA CZYLI ZMIANA NP. DETECTIVE NA DETECT
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [stemmer.stem(i) for i in x])
 
+# PO CO ŁĄCZYMY TE WYRAZY ZE SOBĄ?
 filmy_dane_join_dane_id['metadane_soup'] = filmy_dane_join_dane_id['keywords'] + filmy_dane_join_dane_id['cast'] + filmy_dane_join_dane_id['Director'] + filmy_dane_join_dane_id['genres']
+
+# WZIĘCIE WYRAZÓW W APOSTROFY TYLKO PO CO?
 filmy_dane_join_dane_id['metadane_soup'] = filmy_dane_join_dane_id['metadane_soup'].apply(lambda x: ' '.join(x)) 
 
-# NIE ROZUMIEM
+# NIE ROZUMIEM TEJ LINII
 zlicz = CountVectorizer(analyzer='word',ngram_range=(1, 2),min_df=0, stop_words='english') 
 zlicz_macierz = zlicz.fit_transform(filmy_dane_join_dane_id['metadane_soup'])
 
-# NIE ROZUMIEM
+# NIE ROZUMIEM TEJ LINII
 podobienstwo_cosinusowe = cosine_similarity(zlicz_macierz, zlicz_macierz) 
 
 # BEZ TEGO, NIE PODAJE WŁASCIWYCH TYTUŁÓW
 filmy_dane_join_dane_id = filmy_dane_join_dane_id.reset_index()
 
-# NIE ROZUMIEM
+# BEZ TEJ LINII NIE PODAJE WŁACIWYCH REKOMENDACJI. ALE CO ZMIENIA, TO NIE WIEM.
 tytuly = filmy_dane_join_dane_id['title']
 
-# NIE ROZUMIEM
+# NIE ROZUMIEM TEJ LINII BO NIC NIE ZMIENIA SIE W TABELACH
 indeksy = pd.Series(filmy_dane_join_dane_id.index, index=filmy_dane_join_dane_id['title'])
 
 
@@ -190,33 +193,40 @@ uzyskane_rekomendacje('Batman Returns').head(5)
 
 
 
-# NIE WIEM, ALE WAŻNE
+# INICJALIZACJA REDER'A KTÓREGO CELEM JEST INTEROWANIE PO 'userId', 'movieId', 'rating'?
 reader = Reader()
 
 # WCZYTANIE ID UŻYTKOWNIKA, ID FILMU I OCENY
 oceny = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/ratings_small.csv') 
 
-# NIE WIEM, ALE WAŻNE
+# PO CO TA LINIA?
 dane = Dataset.load_from_df(oceny[['userId', 'movieId', 'rating']], reader)
 
 # METODA SVD
 svd = SVD()
+
+# TE LINIE SĄ KONIECZNE? NA NIC NIE WPŁYWAJĄ
 #trainset = dane.build_full_trainset()
 #svd.fit(trainset)
 
 # KROSWALIDACJA
 cross_validate (svd, dane, measures=['RMSE', 'MAE']) 
     
-# WCZYTANIE DANYCH
+# # WCZYTANIE ID'IKÓW FILMU I PRZYPISANIE JEJ DO MAPY ID'IKÓW
 mapa_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')[['movieId', 'tmdbId']] 
+
+# PRZYPISUJEMY ID FILMU I ID USERA
 mapa_id.columns = ['movieId', 'id']
+
+# CO TA LINIA ROBI?
 mapa_id = mapa_id.merge(filmy_dane_join_dane_id[['title', 'id']], on='id').set_index('title') 
+
+# MAMY ID FILMU I ... ID USERA?
 mapa_indeksow = mapa_id.set_index('id') 
 
 # REKOMENDACJA HYBRYDOWA
 def hybryda(userId, title): 
     idx = indeksy[title] 
-    print(idx)
     
     wynik_cosunisowy = list(enumerate(podobienstwo_cosinusowe[int(idx)])) 
     wynik_cosunisowy = sorted(wynik_cosunisowy, key=lambda x: x[1], reverse=True)  
@@ -236,4 +246,5 @@ oceny[oceny['userId'] == 1]
 svd.predict(1, 302, 3) 
 
 
-
+# bierze pod uwagę idUsera i tytuł filmu,
+# przypisuje indesy do tytułów
