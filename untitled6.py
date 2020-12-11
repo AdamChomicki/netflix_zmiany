@@ -14,7 +14,7 @@ from surprise.model_selection import cross_validate
 
 import warnings; warnings.simplefilter('ignore') 
 
-# WCZYTANIE DANYCH
+# WCZYTANIE METADANYCH O FILMIE
 filmy_dane = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/filmy_dane.csv')  
 
 # USUNIĘCIE BŁĘDNYCH DANYCH
@@ -29,7 +29,7 @@ wykres_jezyk = sns.countplot(x="original_language", data=filmy_dane, palette="Se
 # NIE WIEM, ALE MUSI ZOSTAĆ
 filmy_dane['genres'] = filmy_dane['genres'].fillna('[]').apply(literal_eval).apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])  
 
-# PRZYPISANIE L. GŁOSÓW, USTAWIENIE WARTOSCI ODCIECIA
+# PRZYPISANIE L. GŁOSÓW, USTAWIENIE WARTOSCI ODCIECIA TZN. FILMÓW KTÓRE NIE BĘDĄ BRANE POD UWAGE
 liczba_glosow = filmy_dane[filmy_dane['vote_count'].notnull()]['vote_count'].astype('int') 
 srednia_glosow = filmy_dane[filmy_dane['vote_average'].notnull()]['vote_average'].astype('int')
 srednia_ze_sredniej_liczby_glosow = srednia_glosow.mean()
@@ -43,17 +43,17 @@ zakwalifikowany = filmy_dane[(filmy_dane['vote_count'] >= liczba_glosow_kwantyl)
 zakwalifikowany['vote_count'] = zakwalifikowany['vote_count'].astype('int')  
 zakwalifikowany['vote_average'] = zakwalifikowany['vote_average'].astype('int')  
 
-# TWORZENIE WYKRESU DOTYCZĄCEGO POPULARNO
+# TWORZENIE WYKRESU DOTYCZĄCEGO POPULARNOSCI
 zakwalifikowany.popularity = zakwalifikowany.popularity.astype('float32')
 popularnosc = zakwalifikowany.sort_values('popularity', ascending=False)
 plt.figure(figsize=(12,4))
 plt.barh(popularnosc['title'].head(5),popularnosc['popularity'].head(5), align='center', color='skyblue')
 
-# WCZYTANIE NOWYCH DANYCH
+# WCZYTANIE ID'IKÓW FILMU
 dane_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv')  
 dane_id = dane_id[dane_id['tmdbId'].notnull()]['tmdbId'].astype('int')  
 
-# OCZYSZCZENIE DANYCH
+# PRZYGOTOWANIE DANYCH
 filmy_dane['id'] = filmy_dane['id'].astype('int')  
 filmy_dane_join_dane_id = filmy_dane[filmy_dane['id'].isin(dane_id)]  
 filmy_dane_join_dane_id['tagline'] = filmy_dane_join_dane_id['tagline'].fillna('')
@@ -78,7 +78,7 @@ tytuly = filmy_dane_join_dane_id['title']
 # PRZYPISANIE INDEKSÓW DO TYTŁÓW
 indeksy = pd.Series(filmy_dane_join_dane_id.index, index=filmy_dane_join_dane_id['title'])  
 
-# PO CZYM TE ROKOMENDACJE?
+# REKOMENDACJA PO OPISIE
 def uzyskane_rekomendacje(tytul):
     indeks = indeksy[tytul]
     wynik_symulacji = list(enumerate(podobienstwo_cosinusowe[indeks]))
@@ -94,8 +94,7 @@ uzyskane_rekomendacje('Harry Potter and the Half-Blood Prince').head(5)
 
 
 
-
-# WCZYTANIE DANYCH
+# WCZYTANIE DANYCH Z OBSADĄ FILMU I SŁOWAMI KLUCZOWYMI
 obsada = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/credits.csv') 
 slowa_kluczowe = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/keywords.csv') 
 
@@ -106,7 +105,7 @@ filmy_dane = filmy_dane.merge(slowa_kluczowe, on='id')
 # DODANIE 'ID' DO TABELI
 filmy_dane_join_dane_id = filmy_dane[filmy_dane['id'].isin(dane_id)] 
 
-# ZMIANA NA LICZBY CAŁKOWITE?
+# PRZYGOTOWANIE DANYCH
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(literal_eval) 
 filmy_dane_join_dane_id['crew'] = filmy_dane_join_dane_id['crew'].apply(literal_eval) 
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(literal_eval)
@@ -122,36 +121,40 @@ def otrzymanie_rezysera(x):
             return i['name']
     return np.nan
 
-# NIE ROZUMIEM TEGO BLOKU
+# DODANIE KOLUMNY REŻYSER DO 'FILMY_DANE_JOIN_DANE_ID'
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['crew'].apply(otrzymanie_rezysera)
+
+# SPRAWDZENIE WŁACIWEGO TYPU DANYCH I USUWANIE SPACJI ???
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: x[:3] if len(x) >=3 else x) 
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
 
+# PRZEKONWERTOWANIE NA MAŁE LITERY I USINIĘCIE SPACJI - po co?
 filmy_dane_join_dane_id['cast'] = filmy_dane_join_dane_id['cast'].apply(lambda x: [str.lower(i.replace(" ", "")) for i in x]) 
-
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['Director'].astype('str').apply(lambda x: str.lower(x.replace(" ", ""))) 
+
+# WZIECIE REŻYERA W CUDZYSŁÓW
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['Director'].apply(lambda x: [x,x, x]) 
 
 # NIE ROZUMIEM TEGO BLOKU
-kluczowe_slowa = filmy_dane_join_dane_id.apply(lambda x: pd.Series(x['keywords']),axis=1).stack().reset_index(level=1, drop=True)
+slowa_kluczowe = filmy_dane_join_dane_id.apply(lambda x: pd.Series(x['keywords']),axis=1).stack().reset_index(level=1, drop=True)
 
 # ZMIANA NAZWY KOLUMNY
-kluczowe_slowa.name = 'keyword'
+slowa_kluczowe.name = 'keyword'
 
-# WYSTĘPOWANIE SŁÓW KLUCZOWYCH
-kluczowe_slowa = kluczowe_slowa.value_counts()
-kluczowe_slowa = kluczowe_slowa[kluczowe_slowa > 1]
+# BIERZEMY POD UWAGE SLOWA KLUCZOEW WYSTEPUJĄCE CZĘSCIEJ NIZ 1 RAZ
+slowa_kluczowe = slowa_kluczowe.value_counts()
+slowa_kluczowe = slowa_kluczowe[slowa_kluczowe > 1]
 
 # UŻYCIE STEMERA
 stemmer = SnowballStemmer('english')
 stemmer.stem('asked')
 
 # FUNKCJA BIORĄCA POD UWAGĘ SŁOWA KLUCZOWE PRZY REKOMENDACJI
-def filtr_slow_kluczowych(x): # 
+def filtr_slow_kluczowych(x):
     words = []
     for i in x:
-        if i in kluczowe_slowa:
+        if i in slowa_kluczowe:
             words.append(i)
     return words
 
@@ -229,5 +232,6 @@ hybryda(500, 'Avatar')
 # METODA .PREDICT NIE OCENIA NASZEJ REKOMENDACJI?
 oceny[oceny['userId'] == 1]
 svd.predict(1, 302, 3) 
+
 
 
