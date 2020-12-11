@@ -136,7 +136,7 @@ filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['Director'].astype
 # WZIECIE REŻYERA W CUDZYSŁÓW
 filmy_dane_join_dane_id['Director'] = filmy_dane_join_dane_id['Director'].apply(lambda x: [x,x, x]) 
 
-# NIE ROZUMIEM TEGO BLOKU
+# PRZYPISANIE DO TABELI 'SLOWA_KLUCZOWE' WYŁĄCZNIE SŁÓW KLUCZOWYCH.
 slowa_kluczowe = filmy_dane_join_dane_id.apply(lambda x: pd.Series(x['keywords']),axis=1).stack().reset_index(level=1, drop=True)
 
 # ZMIANA NAZWY KOLUMNY
@@ -158,10 +158,12 @@ def filtr_slow_kluczowych(x):
             words.append(i)
     return words
 
-# NIE ROZUMIEM
+# POZBYCIE SIĘ NIEPOTRZEBNYCH ELEMENTÓW Z KOLUMNY 'KEWYWORD' JAK ID, NAWIASY, ETC.
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(filtr_slow_kluczowych)
+
+# UŻYCIE STEMMERA CZYLI ZMIANA NP. DETECTIVE NA DETECT
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [stemmer.stem(i) for i in x])
-filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [str.lower(i.replace(" ", "")) for i in x])
+
 filmy_dane_join_dane_id['metadane_soup'] = filmy_dane_join_dane_id['keywords'] + filmy_dane_join_dane_id['cast'] + filmy_dane_join_dane_id['Director'] + filmy_dane_join_dane_id['genres']
 filmy_dane_join_dane_id['metadane_soup'] = filmy_dane_join_dane_id['metadane_soup'].apply(lambda x: ' '.join(x)) 
 
