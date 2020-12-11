@@ -27,7 +27,7 @@ sns.set(style="darkgrid")
 wykres_jezyk = sns.countplot(x="original_language", data=filmy_dane, palette="Set2", order=filmy_dane['original_language'].value_counts().index[0:15])
 
 # ZASTĘPUJEMY WARTOSCI NAN W KOLUMNIE 'GENRES' PUSTYM POLEM I COS NASTĘPNIE ZWRACAMY?
-filmy_dane['genres'] = filmy_dane['genres'].fillna('[]').apply(literal_eval).apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])  
+filmy_dane['genres'] = filmy_dane['genres'].fillna('[]').apply(literal_eval).apply(lambda x: [i['name'] for i in x])  
 
 # PRZYPISANIE L. GŁOSÓW, USTAWIENIE WARTOSCI ODCIECIA TZN. FILMÓW KTÓRE NIE BĘDĄ BRANE POD UWAGE
 liczba_glosow = filmy_dane[filmy_dane['vote_count'].notnull()]['vote_count'].astype('int') 
@@ -182,14 +182,10 @@ tytuly = filmy_dane_join_dane_id['title']
 # NIE ROZUMIEM TEJ LINII BO NIC NIE ZMIENIA SIE W TABELACH
 indeksy = pd.Series(filmy_dane_join_dane_id.index, index=filmy_dane_join_dane_id['title'])
 
-
-
 # UZYSKANA REKOMENDACJA
 uzyskane_rekomendacje('Batman Returns').head(5)
 
-
-
-# INICJALIZACJA REDER'A KTÓREGO CELEM JEST INTEROWANIE PO 'userId', 'movieId', 'rating'?
+# INICJALIZACJA REDER'A KTÓREGO CELEM JEST ITEROWANIE PO 'userId', 'movieId', 'rating'?
 reader = Reader()
 
 # WCZYTANIE ID UŻYTKOWNIKA, ID FILMU I OCENY
