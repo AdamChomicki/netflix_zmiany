@@ -36,7 +36,7 @@ srednia_ze_sredniej_liczby_glosow = srednia_glosow.mean()
 liczba_glosow_kwantyl = liczba_glosow.quantile(0.95) 
 
 # WYCIĄGNIĘCIE ROKU DO OSOBNEJ KOLUMNY
-filmy_dane['year'] = pd.to_datetime(filmy_dane['release_date'], errors='coerce')
+filmy_dane['year'] = pd.to_datetime(filmy_dane['release_date'])
 
 # PRZYPISANIE FILMÓW BRANYCH POD UWAGE W REKOMENDACJACH
 zakwalifikowany = filmy_dane[(filmy_dane['vote_count'] >= liczba_glosow_kwantyl) & (filmy_dane['vote_count'].notnull()) & (filmy_dane['vote_average'].notnull())][['title', 'year', 'vote_count', 'vote_average', 'popularity', 'genres']]
