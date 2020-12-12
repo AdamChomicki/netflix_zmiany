@@ -66,7 +66,7 @@ count_macierz = wektoryzator_count.fit_transform(filmy_dane_join_dane_id['descri
 count_macierz.shape # wielkoć naszej macierzy (9099, 30708)
 
 # UŻYCIE PODOBIEŃSTWA COSINUSOWEGO. ALE CO PORÓWNUJEMY? DESCRIPION? DLACZEGO SĄ DWA ARGUMENTY COUNT_MACIERZ? BO PODAJEMY NASZĄ TABLICE KSZTAŁTÓW TJ ((9099, 30708))?
-podobienstwo_cosinusowe = linear_kernel(count_macierz,count_macierz)  
+podobienstwo_cosinusowe = cosine_similarity(count_macierz,count_macierz)  
 podobienstwo_cosinusowe[0]
 
 # BEZ KOLUMNY INDEX NIE DOPASOWUJE FILMÓW PODOBNYCH
