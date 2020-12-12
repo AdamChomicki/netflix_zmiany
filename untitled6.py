@@ -62,10 +62,10 @@ filmy_dane_join_dane_id['description'] = filmy_dane_join_dane_id['description'].
 
 # UŻYCIE WEKTORYZATORA
 wektoryzator_count = CountVectorizer(stop_words='english')
-count_macierz = wektoryzator_count.fit_transform(filmy_dane_join_dane_id['description'])
-count_macierz.shape
+count_macierz = wektoryzator_count.fit_transform(filmy_dane_join_dane_id['description']) # DO ZMIENNEJ count_macierz przypisujemy wektoryzator, który uczy się słownika wyrazów po kolumnie opis?
+count_macierz.shape # wielkoć naszej macierzy (9099, 30708)
 
-# UŻYCIE PODOBIEŃSTWA COSINUSOWEGO. ALE CO PORÓWNUJEMY? DESCRIPION? DLACZEGO  ARGUMENTY COUNT_MACIERZ?
+# UŻYCIE PODOBIEŃSTWA COSINUSOWEGO. ALE CO PORÓWNUJEMY? DESCRIPION? DLACZEGO SĄ DWA ARGUMENTY COUNT_MACIERZ? BO PODAJEMY NASZĄ TABLICE KSZTAŁTÓW TJ ((9099, 30708))?
 podobienstwo_cosinusowe = linear_kernel(count_macierz,count_macierz)  
 podobienstwo_cosinusowe[0]
 
@@ -78,7 +78,7 @@ tytuly = filmy_dane_join_dane_id['title']
 # PRZYPISANIE INDEKSÓW DO TYTŁÓW
 indeksy = pd.Series(filmy_dane_join_dane_id.index, index=filmy_dane_join_dane_id['title'])  
 
-# REKOMENDACJA PO OPISIE
+# REKOMENDACJA PO OPISIE # BIORE 30 FILMÓW NA PODSTAWIE PODOBIEŃSTWA COSINUSOWEGO
 def uzyskane_rekomendacje(tytul):
     indeks = indeksy[tytul]
     wynik_symulacji = list(enumerate(podobienstwo_cosinusowe[indeks]))
@@ -138,7 +138,7 @@ slowa_kluczowe = filmy_dane_join_dane_id.apply(lambda x: pd.Series(x['keywords']
 # ZMIANA NAZWY KOLUMNY
 slowa_kluczowe.name = 'keyword'
 
-# BIERZEMY POD UWAGE SLOWA KLUCZOEW WYSTEPUJĄCE CZĘSCIEJ NIZ 1 RAZ
+# BIERZEMY POD UWAGE SLOWA KLUCZOWE WYSTEPUJĄCE CZĘSCIEJ NIZ 1 RAZ
 slowa_kluczowe = slowa_kluczowe.value_counts()
 slowa_kluczowe = slowa_kluczowe[slowa_kluczowe > 1]
 
@@ -157,7 +157,7 @@ def filtr_slow_kluczowych(x):
 # POZBYCIE SIĘ NIEPOTRZEBNYCH ELEMENTÓW Z KOLUMNY 'KEWYWORD' JAK ID, NAWIASY, ETC.
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(filtr_slow_kluczowych)
 
-# UŻYCIE STEMMERA NA KOLUMNIE
+# UŻYCIE STEMMERA NA KOLUMNIE 'KEYWORDS'
 filmy_dane_join_dane_id['keywords'] = filmy_dane_join_dane_id['keywords'].apply(lambda x: [stemmer.stem(i) for i in x])
 
 # PO CO ŁĄCZYMY TE WYRAZY ZE SOBĄ?
@@ -166,7 +166,7 @@ filmy_dane_join_dane_id['metadane_soup'] = filmy_dane_join_dane_id['keywords'] +
 # WZIĘCIE WYRAZÓW W APOSTROFY TYLKO PO CO SKORO TO TE SAME TYPY?
 filmy_dane_join_dane_id['metadane_soup'] = filmy_dane_join_dane_id['metadane_soup'].apply(lambda x: ' '.join(x)) 
 
-# NIE ROZUMIEM TEJ LINII
+# NIE ROZUMIEM TEJ LINII # Przekonwertuj zbiór dokumentów tekstowych na macierz zliczeń tokenów
 zlicz = CountVectorizer(analyzer='word',ngram_range=(1, 2),min_df=0, stop_words='english') 
 zlicz_macierz = zlicz.fit_transform(filmy_dane_join_dane_id['metadane_soup'])
 
@@ -176,7 +176,7 @@ podobienstwo_cosinusowe = cosine_similarity(zlicz_macierz, zlicz_macierz)
 # BEZ TEGO, NIE PODAJE WŁASCIWYCH TYTUŁÓW
 filmy_dane_join_dane_id = filmy_dane_join_dane_id.reset_index()
 
-# BEZ TEJ LINII NIE PODAJE WŁACIWYCH REKOMENDACJI. ALE CO ZMIENIA, TO NIE WIEM.
+# BEZ TEJ LINII NIE PODAJE WŁACIWYCH REKOMENDACJI. JUŻ ROZUMIEM DLACZEGO.
 tytuly = filmy_dane_join_dane_id['title']
 
 # NIE ROZUMIEM TEJ LINII BO NIC NIE ZMIENIA SIE W TABELACH
@@ -191,7 +191,7 @@ reader = Reader()
 # WCZYTANIE ID UŻYTKOWNIKA, ID FILMU I OCENY
 oceny = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/ratings_small.csv') 
 
-# PO CO TA LINIA?
+# PO CO TA LINIA? Tworzymy klase bazową do ładowania danych?
 dane = Dataset.load_from_df(oceny[['userId', 'movieId', 'rating']], reader)
 
 # METODA SVD
@@ -201,7 +201,7 @@ svd = SVD()
 #trainset = dane.build_full_trainset()
 #svd.fit(trainset)
 
-# KROSWALIDACJA
+# KROSWALIDACJA. 
 cross_validate (svd, dane, measures=['RMSE', 'MAE']) 
     
 # # WCZYTANIE ID'IKÓW FILMU I PRZYPISANIE JEJ DO MAPY ID'IKÓW
@@ -210,7 +210,7 @@ mapa_id = pd.read_csv(r'C:/Users/Adam/Desktop/netflix_dane_edit/dane_id_male.csv
 # PRZYPISUJEMY ID FILMU I ID USERA
 mapa_id.columns = ['movieId', 'id']
 
-# CO TA LINIA ROBI?
+# CO TA LINIA ROBI? ŁACZY ID'KI Z TYTUŁAMI I GRUPUJE W JAKIEJS PRZESTZRENI?
 mapa_id = mapa_id.merge(filmy_dane_join_dane_id[['title', 'id']], on='id').set_index('title') 
 
 # MAMY ID FILMU I ... ID USERA?
